@@ -1,0 +1,15 @@
+# Railway Deployment Configuration
+# This file configures deployment to Railway.app (free hosting)
+
+[build]
+command = "pip install -r requirements.txt"
+
+[web]
+start = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+healthcheck = "/health"
+
+# Environment variables for Railway
+# These will be set automatically or can be configured in Railway dashboard
+# PORT - Set automatically by Railway
+# RAILWAY_ENVIRONMENT - Set automatically
+# DATA_PERSISTENCE - Railway provides ephemeral storage
