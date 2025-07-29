@@ -1,9 +1,17 @@
-# FastAPI Core
+# ====================================================================
+# POORNASREE AI API - COMPREHENSIVE REQUIREMENTS
+# Updated: July 29, 2025
+# All libraries used across the entire codebase
+# ====================================================================
+
+# FastAPI Core Framework
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.5.0
 python-multipart==0.0.6
-pytz==2023.3
+
+# CORS and Web Framework Support
+starlette==0.27.0
 
 # Database Support
 sqlalchemy==2.0.23
@@ -11,51 +19,74 @@ aiomysql==0.2.0
 pymysql==1.1.0
 alembic==1.13.1
 
-# CORS Support for Flutter
-starlette==0.27.0
-
-# Advanced AI/ML Libraries for Production
+# AI/ML Core Libraries
 transformers==4.36.0
 torch>=2.2.0
 sentence-transformers==2.2.2
 tokenizers==0.15.0
 scikit-learn==1.3.2
 nltk==3.8.1
+numpy==1.24.3
 
-# Document Processing (Free)
+# Google Gemini AI Integration
+google-generativeai==0.3.2
+
+# Document Processing - PDF Support
 PyPDF2==3.0.1
+pdfplumber==1.0.9
+pypdf==3.16.1
+
+# Document Processing - Word Support  
 python-docx==1.1.0
 docx2txt==0.8
+
+# Document Processing - Excel Support
 openpyxl==3.1.2
 xlrd==2.0.1
 pandas==2.1.4
 
-# Vector Database and Search (Free - Local)
+# PDF Generation (for utilities)
+reportlab==4.0.4
+
+# Vector Database and Search (Local)
 chromadb==0.4.18
-numpy==1.24.3
 faiss-cpu==1.7.4
 
-# HTTP Requests
+# HTTP Client Libraries
 httpx==0.25.2
 requests==2.31.0
 
-# AI/LLM APIs
-google-generativeai==0.3.2
+# File Handling
+aiofiles==23.2.1
 
-# Environment Variables
+# Environment and Configuration
 python-dotenv==1.0.0
+
+# Date/Time Utilities
+python-dateutil==2.8.2
+pytz==2023.3
 
 # JSON Processing
 orjson==3.9.10
 
-# Date/Time utilities
-python-dateutil==2.8.2
-
-# File handling
-aiofiles==23.2.1
-
 # Logging
 loguru==0.7.2
 
-# System monitoring
+# System Monitoring
 psutil==5.9.6
+
+# Development and Testing Dependencies
+pytest==7.4.3
+pytest-asyncio==0.21.1
+
+# ====================================================================
+# LIBRARY SUMMARY
+# ====================================================================
+# Core Framework: FastAPI + Uvicorn
+# Database: SQLAlchemy + MySQL (aiomysql, pymysql)
+# AI/ML: Google Gemini + Transformers + Sentence Transformers + scikit-learn
+# Document Processing: PyPDF2/pdfplumber (PDF), python-docx (Word), openpyxl/pandas (Excel)
+# Vector Search: ChromaDB + FAISS (local processing)
+# System: psutil (monitoring), pytz (timezone), aiofiles (async file handling)
+# Development: pytest (testing framework)
+# ====================================================================
