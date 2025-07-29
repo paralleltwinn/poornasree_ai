@@ -3,11 +3,24 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
+from urllib.parse import quote_plus
 
 load_dotenv()
 
+# Get database configuration from environment variables
+DB_HOST = os.getenv("DB_HOST", "RDP-Main-Server")
+DB_PORT = os.getenv("DB_PORT", "3306")
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "123@456")
+DB_NAME = os.getenv("DB_NAME", "psrAI")
+
+# URL encode the password to handle special characters
+encoded_password = quote_plus(DB_PASSWORD)
+
 # Database configuration for your MySQL database
-DATABASE_URL = "mysql+aiomysql://root:123%40456@RDP-Main-Server/psrAI"
+DATABASE_URL = f"mysql+aiomysql://{DB_USER}:{encoded_password}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+print(f"🔧 Database URL: mysql+aiomysql://{DB_USER}:***@{DB_HOST}:{DB_PORT}/{DB_NAME}")
 
 # Create async engine
 engine = create_async_engine(

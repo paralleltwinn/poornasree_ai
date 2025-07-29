@@ -48,7 +48,7 @@ async def chat_endpoint(
             message.user_id or "anonymous_user"
         )
         
-        # Create chat session if not provided
+        # Create or ensure chat session exists
         if not message.session_id:
             session = await DatabaseService.create_chat_session(
                 db, 
@@ -57,7 +57,27 @@ async def chat_endpoint(
             )
             session_id = session.session_id
         else:
+            # Check if session exists, create if not
             session_id = message.session_id
+            try:
+                # Try to get existing session
+                existing_session = await DatabaseService.get_chat_session(db, session_id)
+                if not existing_session:
+                    # Session doesn't exist, create it
+                    session = await DatabaseService.create_chat_session_with_id(
+                        db, 
+                        user.user_id,
+                        session_id,
+                        f"Chat {get_indian_time().strftime('%Y-%m-%d %H:%M')}"
+                    )
+            except Exception as e:
+                # Session doesn't exist or error, create new one
+                session = await DatabaseService.create_chat_session_with_id(
+                    db, 
+                    user.user_id,
+                    session_id,
+                    f"Chat {get_indian_time().strftime('%Y-%m-%d %H:%M')}"
+                )
         
         # Generate AI response
         result = await ai_service.chat(
@@ -92,10 +112,15 @@ async def chat_endpoint(
         # Create response
         response = ChatResponse(
             response=result["response"],
-            confidence=result.get("confidence"),
-            sources=result.get("sources", []),
-            timestamp=result.get("timestamp", get_indian_time()),
+            confidence=result.get("confidence", 0.0),
+            ai_used=result.get("ai_used", "Unknown"),
+            model_used=result.get("model_used", "Unknown"),
+            gemini_status=result.get("gemini_status", "unknown"),
+            source_documents=result.get("source_documents", []),
             processing_time=processing_time,
+            documents_searched=result.get("documents_searched", 0),
+            chunks_analyzed=result.get("chunks_analyzed", 0),
+            timestamp=result.get("timestamp", get_indian_time()),
             session_id=session_id
         )
         

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 import uvicorn
-from app.routes import chat, documents, health
+from app.routes import chat, documents, health, ai, service_guide
 from app.services.ai_service import AIService
 from app.database import test_database_connection, init_database
 import os
@@ -50,8 +50,8 @@ async def lifespan(app: FastAPI):
 # Initialize FastAPI app with lifespan
 app = FastAPI(
     title="Poornasree AI Chatbot API",
-    description="Free AI-powered chatbot API for machine manuals",
-    version="1.0.0",
+    description="Google Gemini 2.5 Flash-Lite powered chatbot API for machine manuals - Enhanced with complete Gemini integration",
+    version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan
@@ -70,27 +70,36 @@ app.add_middleware(
 app.include_router(health.router, tags=["Health"])
 app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
 app.include_router(documents.router, prefix="/api/v1", tags=["Documents"])
+app.include_router(service_guide.router, prefix="/api/v1/service-guide", tags=["Service Guide"])
+app.include_router(ai.router, tags=["AI Management"])
 
 @app.get("/")
 async def root():
     """Root endpoint with API information"""
     return {
         "message": "Welcome to Poornasree AI Chatbot API",
-        "version": "1.0.0",
+        "version": "2.0.0",
         "status": "running",
+        "ai_model": "Google Gemini 2.5 Flash-Lite (Entirely Integrated)",
         "features": [
+            "Google Gemini 2.5 Flash-Lite AI-powered responses with complete integration",
             "Machine manual Q&A",
             "Document upload and processing", 
-            "Free AI-powered responses",
+            "Advanced AI conversation capabilities",
             "Multi-format document support (PDF, DOCX, TXT, XLSX)",
             "Excel multiple sheets processing",
+            "Service Guide training and management",
+            "Row-wise Excel data processing",
             "MySQL database integration",
-            "Chat history and user management"
+            "Chat history and user management",
+            "AI status monitoring and testing"
         ],
         "endpoints": {
             "health": "/health",
+            "ai_status": "/api/v1/ai/status",
             "chat": "/api/v1/chat",
             "upload": "/api/v1/documents/upload",
+            "service_guide": "/api/v1/service-guide",
             "docs": "/docs"
         }
     }

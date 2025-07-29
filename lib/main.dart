@@ -11,7 +11,7 @@ class PoornasreeAIApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Poornasree AI - Machine Manual Assistant',
+      title: 'Poornasree AI - Service Guide & Gemini Assistant',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

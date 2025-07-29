@@ -50,6 +50,9 @@ class DatabaseService:
         """Save document information to database"""
         document_id = str(uuid.uuid4())
         
+        # Convert metadata dictionary to JSON string
+        metadata_json = json.dumps(metadata) if metadata else None
+        
         document = Document(
             document_id=document_id,
             user_id=user_id,
@@ -62,7 +65,7 @@ class DatabaseService:
             chunk_count=chunk_count or 0,
             processing_time=processing_time,
             processing_status="completed",
-            doc_metadata=metadata or {},
+            doc_metadata=metadata_json,
             content_text=content_text
         )
         
@@ -117,6 +120,29 @@ class DatabaseService:
         return session
     
     @staticmethod
+    async def create_chat_session_with_id(db: AsyncSession, user_id: str, session_id: str, title: str = None) -> ChatSession:
+        """Create a new chat session with specific ID"""
+        session = ChatSession(
+            session_id=session_id,
+            user_id=user_id,
+            title=title or f"Chat Session {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+        )
+        
+        db.add(session)
+        await db.commit()
+        await db.refresh(session)
+        
+        return session
+    
+    @staticmethod
+    async def get_chat_session(db: AsyncSession, session_id: str) -> ChatSession:
+        """Get chat session by ID"""
+        result = await db.execute(
+            select(ChatSession).where(ChatSession.session_id == session_id)
+        )
+        return result.scalar_one_or_none()
+    
+    @staticmethod
     async def save_chat_message(
         db: AsyncSession,
         session_id: str,
@@ -131,6 +157,9 @@ class DatabaseService:
         """Save chat message to database"""
         message_id = str(uuid.uuid4())
         
+        # Convert source_documents list to JSON string
+        source_docs_json = json.dumps(source_documents) if source_documents else None
+        
         message = DBChatMessage(
             message_id=message_id,
             session_id=session_id,
@@ -140,7 +169,7 @@ class DatabaseService:
             is_user_message=is_user_message,
             confidence_score=confidence_score,
             processing_time=processing_time,
-            source_documents=source_documents
+            source_documents=source_docs_json
         )
         
         db.add(message)

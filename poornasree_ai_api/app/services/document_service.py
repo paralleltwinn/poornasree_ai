@@ -14,9 +14,10 @@ try:
     import pdfplumber
     import pypdf
     ADVANCED_PDF_SUPPORT = True
-except ImportError:
+    print("✅ Advanced PDF support libraries loaded successfully!")
+except ImportError as e:
     ADVANCED_PDF_SUPPORT = False
-    print("⚠️ Advanced PDF support libraries not available. Using basic PDF extraction.")
+    print(f"⚠️ Advanced PDF support libraries not available: {e}. Using basic PDF extraction.")
 
 # Optional Excel support
 try:
@@ -24,9 +25,10 @@ try:
     import xlrd
     import pandas as pd
     EXCEL_SUPPORT = True
-except ImportError:
+    print("✅ Excel support libraries loaded successfully!")
+except ImportError as e:
     EXCEL_SUPPORT = False
-    print("⚠️ Excel support libraries not available. .xlsx/.xls files will not be supported.")
+    print(f"⚠️ Excel support libraries not available: {e}. .xlsx/.xls files will not be supported.")
 
 logger = logging.getLogger(__name__)
 
@@ -307,6 +309,50 @@ class DocumentService:
             logger.error(f"Error reading Excel with pandas: {e}")
             raise e
     
+    async def extract_excel_rows(self, file_path: str) -> List[Dict]:
+        """Extract Excel data row by row for service guide training"""
+        if not EXCEL_SUPPORT:
+            raise ValueError("Excel support not available. Install openpyxl and pandas.")
+        
+        try:
+            # Read Excel file with all sheets
+            df_dict = pd.read_excel(file_path, sheet_name=None)
+            all_rows = []
+            
+            for sheet_name, df in df_dict.items():
+                # Clean the dataframe
+                df = df.dropna(how='all')  # Remove completely empty rows
+                df = df.fillna('')  # Fill NaN with empty strings
+                
+                # Get headers
+                headers = [str(col).strip() for col in df.columns]
+                
+                # Extract each row
+                for index, row in df.iterrows():
+                    row_data = {
+                        "sheet": sheet_name,
+                        "row_number": index + 2,  # +2 for Excel numbering (1-indexed + header)
+                        "columns": {}
+                    }
+                    
+                    # Map each column to its value
+                    for col_idx, header in enumerate(headers):
+                        if col_idx < len(row):
+                            value = str(row.iloc[col_idx]).strip()
+                            if value and value != 'nan':
+                                row_data["columns"][header] = value
+                    
+                    # Only include rows with data
+                    if row_data["columns"]:
+                        all_rows.append(row_data)
+            
+            logger.info(f"Extracted {len(all_rows)} rows from Excel file")
+            return all_rows
+            
+        except Exception as e:
+            logger.error(f"Error extracting Excel rows: {e}")
+            raise e
+
     def _clean_excel_text(self, text: str) -> str:
         """Clean up extracted Excel text"""
         # Remove excessive whitespace

@@ -5,6 +5,7 @@ class ChatMessage {
   final String? source;
   final double? confidence;
   final String? userId;
+  final Map<String, dynamic>? metadata;
 
   ChatMessage({
     required this.text,
@@ -13,6 +14,7 @@ class ChatMessage {
     this.source,
     this.confidence,
     this.userId,
+    this.metadata,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class ChatMessage {
       timestamp: DateTime.parse(json['timestamp']),
       source: json['source'],
       confidence: json['confidence']?.toDouble(),
+      metadata: json['metadata'] as Map<String, dynamic>?,
     );
   }
 
@@ -32,6 +35,7 @@ class ChatMessage {
       'timestamp': timestamp.toIso8601String(),
       'source': source,
       'confidence': confidence,
+      'metadata': metadata,
     };
   }
 }

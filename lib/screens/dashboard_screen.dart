@@ -3,6 +3,8 @@ import 'dart:html' as html;
 import '../services/api_service.dart';
 import '../services/document_service.dart';
 import '../widgets/api_status_widget.dart';
+import '../widgets/ai_status_widget.dart';
+import '../widgets/service_guide_status_widget.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -195,10 +197,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear All Training Data'),
-        content: const Text(
-          'This will permanently delete all uploaded documents and training data. '
-          'This action cannot be undone. Are you sure you want to continue?'
+        title: const Row(
+          children: [
+            Icon(Icons.warning, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Clear All Training Data'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'This will permanently delete:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text('• ${_documents.length} uploaded documents'),
+            Text('• ${_stats['total_chunks'] ?? 0} processed chunks'),
+            Text('• All AI training data and embeddings'),
+            Text('• All document processing history'),
+            const SizedBox(height: 16),
+            const Text(
+              'Your Gemini AI model will start fresh without any document context. '
+              'This action cannot be undone.',
+              style: TextStyle(
+                color: Colors.red,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -211,7 +239,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Clear All'),
+            child: const Text('Clear All Data'),
           ),
         ],
       ),
@@ -229,8 +257,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(response['message'] ?? 'All training data cleared successfully'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.white),
+                    SizedBox(width: 8),
+                    Text(
+                      'Training Data Cleared Successfully',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                if (response['deleted_count'] != null)
+                  Text('Deleted ${response['deleted_count']} documents'),
+                if (response['ai_cleared'] != null)
+                  Text('Cleared ${response['ai_cleared']} AI training records'),
+              ],
+            ),
             backgroundColor: Colors.green,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -290,6 +338,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildWelcomeSection(),
+          const SizedBox(height: 24),
+          // AI Status Section
+          const AIStatusWidget(),
+          const SizedBox(height: 24),
+          // Service Guide Status Section
+          const ServiceGuideStatusWidget(),
           const SizedBox(height: 32),
           _buildQuickActionsRow(),
           const SizedBox(height: 32),
@@ -356,8 +410,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 16),
           const Text(
-            'Manage your training documents and optimize your AI assistant. '
-            'Upload manuals, technical documentation, and knowledge bases to improve AI responses.',
+            'Manage your training documents and optimize your Gemini AI assistant. '
+            'Upload manuals, technical documentation, and knowledge bases to enhance AI responses with Google Gemini 2.5 Flash-Lite.',
             style: TextStyle(
               fontSize: 16,
               color: Colors.white,

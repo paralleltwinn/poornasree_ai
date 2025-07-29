@@ -13,7 +13,7 @@ import 'dart:html' as html;
 class ApiService {
   static String get apiBaseUrl => AppConstants.apiBaseUrl;
 
-  /// Send chat message to API
+  /// Send chat message to API with enhanced Gemini integration
   static Future<ChatMessage> sendMessage(String message, {String userId = 'flutter_user'}) async {
     try {
       final response = await http.post(
@@ -24,6 +24,7 @@ class ApiService {
         body: json.encode({
           'message': message,
           'user_id': userId,
+          'session_id': 'flutter_session_${DateTime.now().millisecondsSinceEpoch}',
         }),
       ).timeout(const Duration(seconds: 30));
 
@@ -44,6 +45,16 @@ class ApiService {
           timestamp: timestamp,
           confidence: data['confidence']?.toDouble(),
           userId: userId,
+          metadata: {
+            'ai_used': data['ai_used'] ?? 'Google Gemini 2.5 Flash-Lite',
+            'processing_time': data['processing_time']?.toDouble() ?? 0.0,
+            'model_used': data['model_used'] ?? 'Gemini 2.5 Flash-Lite',
+            'gemini_status': data['gemini_status'] ?? 'active',
+            'gemini_powered': data['ai_used']?.toString().contains('Gemini') ?? true,
+            'documents_searched': data['documents_searched'] ?? 0,
+            'chunks_analyzed': data['chunks_analyzed'] ?? 0,
+            'source_count': (data['source_documents'] as List?)?.length ?? 0,
+          },
         );
       } else {
         final errorData = json.decode(response.body);
@@ -529,8 +540,176 @@ class ApiService {
     return DocumentService.getSupportedFormats();
   }
   
+  /// Get AI service status including Gemini integration
+  static Future<Map<String, dynamic>> getAIStatus() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/v1/ai/status'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to get AI status: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error getting AI status: $e');
+    }
+  }
+  
+  /// Get detailed AI model information
+  static Future<Map<String, dynamic>> getAIModelInfo() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/v1/ai/model-info'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to get AI model info: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error getting AI model info: $e');
+    }
+  }
+  
+  /// Test AI connectivity and response quality
+  static Future<Map<String, dynamic>> testAIConnection() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiBaseUrl/api/v1/ai/test'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'test_message': 'Hello, this is a connectivity test from Flutter app.',
+        }),
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('AI test failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error testing AI connection: $e');
+    }
+  }
+  
   /// Get format-specific processing capabilities
   static Map<String, List<String>> getFormatCapabilities() {
     return DocumentService.getFormatCapabilities();
+  }
+
+  /// Train Excel file as service guide
+  static Future<Map<String, dynamic>> trainServiceGuide(html.File file) async {
+    try {
+      print('🔄 Training service guide: ${file.name}');
+      
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$apiBaseUrl/api/v1/service-guide/train-service-guide'),
+      );
+
+      // Read file as bytes
+      final bytes = await _readFileAsBytes(file);
+      
+      // Add file to request
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          bytes,
+          filename: file.name,
+        ),
+      );
+
+      request.fields['user_id'] = 'flutter_user';
+      request.fields['training_type'] = 'service_guide';
+
+      final response = await request.send().timeout(const Duration(minutes: 5));
+      final responseString = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        return json.decode(responseString);
+      } else {
+        final errorData = json.decode(responseString);
+        throw Exception('Training failed: ${errorData['detail'] ?? 'Unknown error'}');
+      }
+    } catch (e) {
+      throw Exception('Error training service guide: $e');
+    }
+  }
+
+  /// Get service guide entries
+  static Future<List<Map<String, dynamic>>> getServiceGuideEntries({
+    String? category,
+    String? type,
+    String? sheet,
+  }) async {
+    try {
+      final queryParams = <String, String>{};
+      if (category != null) queryParams['category'] = category;
+      if (type != null) queryParams['type'] = type;
+      if (sheet != null) queryParams['sheet'] = sheet;
+      
+      final uri = Uri.parse('$apiBaseUrl/api/v1/service-guide/entries')
+          .replace(queryParameters: queryParams);
+      
+      final response = await http.get(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data['entries'] ?? []);
+      } else {
+        throw Exception('Failed to get service guide entries: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error getting service guide entries: $e');
+    }
+  }
+
+  /// Search service guide
+  static Future<List<Map<String, dynamic>>> searchServiceGuide(String query) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiBaseUrl/api/v1/service-guide/search'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'query': query,
+          'limit': 20,
+        }),
+      ).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data['results'] ?? []);
+      } else {
+        throw Exception('Search failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error searching service guide: $e');
+    }
+  }
+
+  /// Get service guide statistics
+  static Future<Map<String, dynamic>> getServiceGuideStats() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/v1/service-guide/stats'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to get stats: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error getting service guide stats: $e');
+    }
   }
 }

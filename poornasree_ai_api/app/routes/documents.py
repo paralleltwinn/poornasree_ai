@@ -6,7 +6,7 @@ import logging
 from datetime import datetime
 from typing import Optional
 import pytz
-from app.models import DocumentUpload, DocumentInfo
+from app.models import DocumentUpload, DocumentInfo, DocumentResponse
 from app.services.document_service import DocumentService
 from app.services.ai_service import AIService
 from app.services.database_service import DatabaseService
@@ -26,7 +26,7 @@ def get_indian_time():
 document_service = DocumentService()
 ai_service = AIService()
 
-@router.post("/documents/upload", response_model=DocumentUpload)
+@router.post("/documents/upload", response_model=DocumentResponse)
 async def upload_document(
     file: UploadFile = File(...),
     description: Optional[str] = Form(None),
@@ -102,12 +102,12 @@ async def upload_document(
             logger.warning(f"Failed to save document record to database: {db_error}")
             # Continue anyway - document is processed and in AI knowledge base
         
-        response = DocumentUpload(
+        response = DocumentResponse(
+            message="Document uploaded and processed successfully",
             filename=file.filename,
-            file_size=file_size,
-            file_type=file.content_type or "unknown",
-            upload_status="success",
-            processed_chunks=estimated_chunks,
+            document_id=f"doc_{int(time.time())}",
+            pages_processed=processing_result.get("pages", 1),
+            chunks_created=estimated_chunks,
             processing_time=processing_time
         )
         

@@ -4,6 +4,7 @@ import '../models/chat_message.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/chat_input.dart';
 import '../widgets/example_questions.dart';
+import '../widgets/ai_status_widget.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -17,6 +18,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
   bool _showExamples = true;
+  bool _showAIStatus = false;
 
   @override
   void initState() {
@@ -27,14 +29,23 @@ class _ChatScreenState extends State<ChatScreen> {
   void _addWelcomeMessage() {
     setState(() {
       _messages.add(ChatMessage(
-        text: "Hello! I'm your AI assistant for machine manuals. I can help you with:\n\n"
+        text: "Hello! I'm your AI assistant powered **entirely** by **Google Gemini 2.5 Flash-Lite**. I can help you with:\n\n"
             "🔧 Machine operation procedures\n"
             "🛠️ Troubleshooting and diagnostics\n"
             "📋 Maintenance schedules\n"
-            "⚠️ Safety guidelines\n\n"
-            "Upload your manuals in the Dashboard and ask me anything!",
+            "⚠️ Safety guidelines\n"
+            "📚 Document analysis and answers\n"
+            "🤖 Advanced AI-powered technical support\n"
+            "🚀 Complete Gemini 2.5 Flash-Lite integration\n\n"
+            "**Every response is powered by Gemini 2.5 Flash-Lite** for the most accurate, comprehensive, and contextual technical guidance!\n\n"
+            "Upload your manuals in the Dashboard and ask me anything for detailed, AI-enhanced guidance!",
         isUser: false,
         timestamp: DateTime.now(),
+        metadata: {
+          'ai_used': 'Google Gemini 2.5 Flash-Lite',
+          'model_used': 'Gemini 2.5 Flash-Lite',
+          'gemini_powered': true,
+        },
       ));
     });
   }
@@ -179,6 +190,15 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
+            icon: const Icon(Icons.smart_toy),
+            onPressed: () {
+              setState(() {
+                _showAIStatus = !_showAIStatus;
+              });
+            },
+            tooltip: 'AI Status',
+          ),
+          IconButton(
             icon: const Icon(Icons.info_outline),
             onPressed: _showApiStatus,
             tooltip: 'API Status',
@@ -192,6 +212,13 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
+          // AI Status Widget (optional)
+          if (_showAIStatus)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: AIStatusWidget(),
+            ),
+          
           // Chat messages
           Expanded(
             child: ListView.builder(
@@ -229,7 +256,13 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text('AI is thinking...'),
+                  Text(
+                    'Gemini AI is thinking...',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
                 ],
               ),
             ),

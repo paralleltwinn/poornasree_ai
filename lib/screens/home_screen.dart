@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'chat_screen.dart';
 import 'dashboard_screen.dart';
+import 'service_guide_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,6 +16,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     const ChatScreen(),
     const DashboardScreen(),
+    const ServiceGuideScreen(),
   ];
 
   final List<NavigationDestination> _destinations = [
@@ -27,6 +29,11 @@ class _HomeScreenState extends State<HomeScreen> {
       icon: Icon(Icons.dashboard_outlined),
       selectedIcon: Icon(Icons.dashboard),
       label: 'Dashboard',
+    ),
+    const NavigationDestination(
+      icon: Icon(Icons.description_outlined),
+      selectedIcon: Icon(Icons.description),
+      label: 'Service Guide',
     ),
   ];
 

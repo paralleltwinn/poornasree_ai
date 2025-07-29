@@ -10,8 +10,9 @@ class AppConstants {
   
   // App Information
   static const String appName = "Poornasree AI";
-  static const String appDescription = "AI-powered assistant for machine manuals";
-  static const String version = "1.0.0";
+  static const String appDescription = "AI-powered assistant for machine manuals with Google Gemini 2.5 Flash-Lite";
+  static const String version = "2.0.0";
+  static const String aiModel = "Google Gemini 2.5 Flash-Lite";
   
   // UI Constants
   static const double defaultPadding = 16.0;
@@ -20,7 +21,7 @@ class AppConstants {
   
   // File Upload Limits
   static const int maxFileSize = 10 * 1024 * 1024; // 10MB
-  static const List<String> supportedFileTypes = ['.pdf', '.docx', '.doc', '.txt'];
+  static const List<String> supportedFileTypes = ['.pdf', '.docx', '.doc', '.txt', '.xlsx', '.xls'];
   
   // Chat Configuration
   static const int maxMessageLength = 1000;
@@ -31,4 +32,5 @@ class AppConstants {
   static const secondaryColor = 0xFF03DAC6;
   static const errorColor = 0xFFB00020;
   static const successColor = 0xFF4CAF50;
+  static const geminiColor = 0xFF4285F4; // Google Blue
 }
